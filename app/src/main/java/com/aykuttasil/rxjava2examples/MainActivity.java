@@ -11,6 +11,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.aykuttasil.rxjava2examples.models.User;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -38,7 +45,121 @@ public class MainActivity extends AppCompatActivity {
         //scan();
         //range();
         //materialize();
-        fibonacci();
+        //fibonacci();
+        //replaySubject();
+        //runnable();
+        /*try {
+            callable();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+        //executorServiceSubmit();
+        //executorServiceExecute();
+        //executorServiceNewCachedThreadPool();
+        executorServiceNewFixedThreadPool();
+        //executorServiceNewSingleThreadExecutor();
+    }
+
+    private void executorServiceNewSingleThreadExecutor() {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+
+        for (int a = 0; a < 10000; a++) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(TAG, "ExecuterServicee: " + Thread.currentThread().getName());
+                }
+            });
+        }
+    }
+
+    private void executorServiceNewFixedThreadPool() {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
+        threadPoolExecutor.setCorePoolSize(2);
+        threadPoolExecutor.setMaximumPoolSize(2);
+
+        for (int a = 0; a < 10000; a++) {
+            threadPoolExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(TAG, "ExecuterServicee: " + Thread.currentThread().getName());
+                }
+            });
+        }
+    }
+
+    private void executorServiceNewCachedThreadPool() {
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int a = 0; a < 10000; a++) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(TAG, "ExecuterServicee: " + Thread.currentThread().getName());
+                }
+            });
+        }
+    }
+
+    private void executorServiceExecute() {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int a = 0; a < 40; a++) {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    //
+                    Log.i(TAG, "ExecuterService: " + Thread.currentThread().getName());
+                }
+            });
+        }
+    }
+
+    private void executorServiceSubmit() {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+
+        for (int a = 0; a < 40; a++) {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    //
+                    Log.i(TAG, "ExecuterService: " + Thread.currentThread().getName());
+                }
+            });
+        }
+    }
+
+    private void callable() throws Exception {
+        Callable<User> callable = () -> {
+            User user = new User();
+            user.setAd("Aykut");
+            user.setSoyad("Asil");
+            return user;
+        };
+
+        mTextView.setText(callable.call().getAd());
+    }
+
+    private void runnable() {
+        Runnable runnable = () -> {
+            mTextView.setText("Runnable is run");
+        };
+        runnable.run();
+
+        try {
+            Executors.callable(runnable, new User()).call();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void replaySubject() {
+
     }
 
     private void fibonacci() {
