@@ -2,13 +2,10 @@ package com.aykuttasil.rxjava2examples;
 
 import android.os.Bundle;
 import android.provider.CallLog;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.aykuttasil.rxjava2examples.models.User;
@@ -17,9 +14,20 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Flowable;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeSource;
 import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.ReplaySubject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,10 +42,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mTextView = (TextView) findViewById(R.id.TextViewResp);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show());
 
 
         //writeGetLastOutgoingCall();
@@ -56,13 +60,222 @@ public class MainActivity extends AppCompatActivity {
         //executorServiceSubmit();
         //executorServiceExecute();
         //executorServiceNewCachedThreadPool();
-        executorServiceNewFixedThreadPool();
+        //executorServiceNewFixedThreadPool();
         //executorServiceNewSingleThreadExecutor();
+
+        //deneme();
+
+
+        //tryMaybe();
+        //tryFlowable();
+
+        //tryPublishSubject();
+        tryReplaySubject();
+    }
+
+    private void tryReplaySubject() {
+
+        ReplaySubject<String> replaySubject = ReplaySubject.create();
+        replaySubject.observeOn(AndroidSchedulers.mainThread());
+
+        Observer<String> observer1 = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i(TAG, "observer1 - onSubscribe");
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, "observer1 - onNext: " + s);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                showSnackbar(e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "observer1 - onComplete");
+            }
+        };
+
+        Observer<String> observer2 = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i(TAG, "observer2 - onSubscribe");
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, "observer2 - onNext: " + s);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "observer2 - onComplete");
+            }
+        };
+
+
+        replaySubject.subscribe(observer1);
+
+        replaySubject.onNext("Merhaba");
+        replaySubject.onNext("Aykut");
+
+        replaySubject.subscribe(observer2);
+
+        replaySubject.onNext("Napıyosun");
+        replaySubject.onNext("İyi misin ? ");
+
+
+    }
+
+    private void tryPublishSubject() {
+
+        PublishSubject<String> publishSubject = PublishSubject.create();
+        publishSubject.observeOn(AndroidSchedulers.mainThread());
+
+        Observer<String> observer1 = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i(TAG, "observer1 - onSubscribe");
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, "observer1 - onNext: " + s);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                showSnackbar(e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "observer1 - onComplete");
+            }
+        };
+
+        Observer<String> observer2 = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i(TAG, "observer2 - onSubscribe");
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, "observer2 - onNext: " + s);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "observer2 - onComplete");
+            }
+        };
+
+
+        publishSubject.subscribe(observer1);
+
+        publishSubject.onNext("Merhaba");
+        publishSubject.onNext("Aykut");
+
+        publishSubject.subscribe(observer2);
+
+        publishSubject.onNext("Napıyosun");
+        publishSubject.onNext("İyi misin ? ");
+
+    }
+
+    /**
+     * Not: observeOn(AndroidSchedulers.mainThread()) belirtilmezse onComplete UiThread de çalıştırılmaz.
+     * Bu nedenle uygulama hata alır.
+     */
+    private void tryFlowable() {
+
+        Flowable.range(1, 10)
+                .delay(1, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(success -> {
+
+                    Log.i(TAG, String.valueOf(success));
+                    //showSnackbar(success);
+                }, error -> {
+                    showTextView(error.getMessage());
+                }, () -> {
+                    // runOnUiThread(() -> showTextView("HATA"));
+                    showTextView("completed");
+                });
+    }
+
+    /**
+     * Single ve Completable birleşimi gibi düşünebiliriz.
+     * Sadece tek bir değer yayar.
+     * Yayınlıcak değer yoksa onComplate çalıştırılır
+     * Hata meydana gelirse onError çalıştırılır.
+     */
+    private void tryMaybe() {
+
+        Maybe.just(5)
+                .flatMap(new Function<Integer, MaybeSource<Integer>>() {
+                    @Override
+                    public MaybeSource<Integer> apply(@NonNull Integer deger) throws Exception {
+                        //return Maybe.error(new Exception("HATA"));
+                        return Maybe.just(2);
+                    }
+                })
+                .filter(deger -> deger > 3)
+                .map(String::valueOf)
+                //.defaultIfEmpty("3")
+                .subscribe(succ -> {
+                    mTextView.setText(succ);
+                }, error -> {
+                    mTextView.setText(error.getMessage());
+                }, () -> {
+                    Snackbar.make(mTextView, "complated", Snackbar.LENGTH_SHORT).show();
+                });
+
+    }
+
+    class Abc {
+
+    }
+
+    private void deneme() {
+
+//        Observable.range(1, 10)
+//                .map(new Function<Integer, Integer>() {
+//                    @Override
+//                    public Integer apply(Integer deger) throws Exception {
+//                        return deger;
+//                    }
+//                })
+//                .map(new Function<Integer, String>() {
+//                    @Override
+//                    public String apply(Integer ınteger) throws Exception {
+//                        return null;
+//                    }
+//                })
+//                .subscribe(success -> {
+//
+//                });
+
     }
 
     private void executorServiceNewSingleThreadExecutor() {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         for (int a = 0; a < 10000; a++) {
             executorService.execute(new Runnable() {
@@ -72,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
     }
 
     private void executorServiceNewFixedThreadPool() {
@@ -244,25 +458,17 @@ public class MainActivity extends AppCompatActivity {
         mTextView.setText(val);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+
+    private void showSnackbar(String value) {
+        Snackbar.make(mTextView, value, Snackbar.LENGTH_SHORT).show();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    private void showSnackbar(Integer value) {
+        Snackbar.make(mTextView, String.valueOf(value), Snackbar.LENGTH_SHORT).show();
     }
+
+    private void showTextView(String value) {
+        mTextView.setText(value);
+    }
+
 }
