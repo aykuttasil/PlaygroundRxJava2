@@ -9,12 +9,10 @@ import com.aykuttasil.rxjava2examples.models.User
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.Flowable
 import io.reactivex.Maybe
-import io.reactivex.MaybeSource
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.ReplaySubject
@@ -118,7 +116,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun tryPublishSubject() {
-
         val publishSubject = PublishSubject.create<String>()
         publishSubject.observeOn(AndroidSchedulers.mainThread())
 
@@ -176,17 +173,20 @@ class MainActivity : AppCompatActivity() {
      * Bu nedenle uygulama hata alır.
      */
     private fun tryFlowable() {
-        Flowable.range(1, 10)
+        val disp = Flowable.range(1, 10)
                 .delay(1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ success ->
-
-                    Log.i(TAG, success.toString())
-                    //showSnackbar(success);
-                }, { error -> showTextView(error.message!!) }, {
-                    // runOnUiThread(() -> showTextView("HATA"));
-                    showTextView("completed")
-                })
+                .subscribe(
+                        { success ->
+                            Log.i(TAG, success.toString())
+                            //showSnackbar(success);
+                        },
+                        { error -> showTextView(error.message!!) },
+                        {
+                            // runOnUiThread(() -> showTextView("HATA"));
+                            showTextView("completed")
+                        }
+                )
     }
 
     /**
@@ -196,56 +196,31 @@ class MainActivity : AppCompatActivity() {
      * Hata meydana gelirse onError çalıştırılır.
      */
     private fun tryMaybe() {
-        Maybe.just(5)
-                .flatMap(object : Function<Int, MaybeSource<Int>> {
-                    override fun apply(t: Int): MaybeSource<Int> {
-                        //return Maybe.error(new Exception("HATA"));
-                        return Maybe.just(2)
-                    }
-                })
+        val disp = Maybe.just(5)
+                .flatMap {
+                    //return Maybe.error(new Exception("HATA"));
+                    Maybe.just(2)
+                }
                 .filter { deger -> deger > 3 }
                 .map { it.toString() }
                 //.defaultIfEmpty("3")
-                .subscribe({ succ -> TextViewResp.text = succ }, { error -> TextViewResp.text = error.message },
-                        { Snackbar.make(TextViewResp, "complated", Snackbar.LENGTH_SHORT).show() })
-
-    }
-
-    internal inner class Abc
-
-    private fun deneme() {
-
-        //        Observable.range(1, 10)
-        //                .map(new Function<Integer, Integer>() {
-        //                    @Override
-        //                    public Integer apply(Integer deger) throws Exception {
-        //                        return deger;
-        //                    }
-        //                })
-        //                .map(new Function<Integer, String>() {
-        //                    @Override
-        //                    public String apply(Integer ınteger) throws Exception {
-        //                        return null;
-        //                    }
-        //                })
-        //                .subscribe(success -> {
-        //
-        //                });
+                .subscribe(
+                        { succ -> TextViewResp.text = succ },
+                        { error -> TextViewResp.text = error.message },
+                        { Snackbar.make(TextViewResp, "completed", Snackbar.LENGTH_SHORT).show() }
+                )
 
     }
 
     private fun executorServiceNewSingleThreadExecutor() {
-
         val executorService = Executors.newSingleThreadExecutor()
 
         for (a in 0..9999) {
             executorService.execute { Log.i(TAG, "ExecuterServicee: " + Thread.currentThread().name) }
         }
-
     }
 
     private fun executorServiceNewFixedThreadPool() {
-
         val executorService = Executors.newFixedThreadPool(1)
         val threadPoolExecutor = executorService as ThreadPoolExecutor
         threadPoolExecutor.corePoolSize = 2
@@ -257,7 +232,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun executorServiceNewCachedThreadPool() {
-
         val executorService = Executors.newCachedThreadPool()
 
         for (a in 0..9999) {
@@ -270,19 +244,16 @@ class MainActivity : AppCompatActivity() {
 
         for (a in 0..39) {
             executorService.submit {
-                //
                 Log.i(TAG, "ExecuterService: " + Thread.currentThread().name)
             }
         }
     }
 
     private fun executorServiceSubmit() {
-
         val executorService = Executors.newFixedThreadPool(20)
 
         for (a in 0..39) {
             executorService.submit {
-                //
                 Log.i(TAG, "ExecuterService: " + Thread.currentThread().name)
             }
         }
@@ -338,12 +309,12 @@ class MainActivity : AppCompatActivity() {
                     list[1]
                 }
 
-        observable.take(10)
+        val disp = observable.take(10)
                 .subscribe { success -> Log.i(TAG, "val: $success") }
     }
 
     private fun materialize() {
-        Observable.range(2, 10)
+        val disp = Observable.range(2, 10)
                 .materialize()
                 .filter { integerNotification ->
                     Log.i(TAG, "filter: $integerNotification")
@@ -358,12 +329,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun range() {
-        Observable.range(3, 5).subscribeOn(Schedulers.io())
+        val disp = Observable.range(3, 5).subscribeOn(Schedulers.io())
                 .subscribe { success -> Log.i(TAG, "val: " + success!!.toString()) }
     }
 
     private fun scan() {
-        Observable.fromArray(3, 5, 7)
+        val disp = Observable.fromArray(3, 5, 7)
                 .scan(10, { val1, val2 ->
                     //
                     Log.i(TAG, "val1: $val1")
@@ -375,7 +346,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reduce() {
-        Observable.just(1, 3, 5)
+        val disp = Observable.just(1, 3, 5)
                 .reduce(10, { val1, val2 ->
                     Log.i(TAG, "val1: $val1")
                     Log.i(TAG, "val2: $val2")
